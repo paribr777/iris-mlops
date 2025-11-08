@@ -1,4 +1,4 @@
-name: CI
+name: CI - Iris MLOps
 
 on:
   push:
@@ -10,8 +10,12 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    env:
+      # Use GitHub secret for GCS auth
+      GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp_key.json
+
     steps:
-      # 1. Checkout the code
+      # 1. Checkout code
       - name: Checkout repo
         uses: actions/checkout@v3
 
@@ -19,7 +23,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.11
+          python-version: 3.10
 
       # 3. Install dependencies
       - name: Install dependencies
@@ -28,28 +32,34 @@ jobs:
           source venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
-          pip install dvc[s3]  # adjust remote type if needed
-          pip install pytest mlflow scikit-learn pandas joblib
+          pip install gcsfs dvc[gs] mlflow scikit-learn pandas joblib pytest
 
-      # 4. Pull DVC datasets
+      # 4. Authenticate to GCS
+      - name: Authenticate to GCP
+        run: |
+          echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" > gcp_key.json
+          gcloud auth activate-service-account --key-file=gcp_key.json
+          gcloud config set project <YOUR_PROJECT_ID>
+
+      # 5. Pull DVC datasets and outputs
       - name: Pull DVC data
         run: |
           source venv/bin/activate
           dvc pull
 
-      # 5. Reproduce DVC pipeline
-      - name: Run DVC pipeline
+      # 6. Reproduce DVC pipeline (incremental training)
+      - name: Reproduce pipeline
         run: |
           source venv/bin/activate
           dvc repro
 
-      # 6. Evaluate models
+      # 7. Evaluate latest model
       - name: Evaluate model
         run: |
           source venv/bin/activate
           python eval.py
 
-      # 7. Run pytest for inference script integrity
+      # 8. Run pytest for inference script integrity
       - name: Run tests
         run: |
           source venv/bin/activate
