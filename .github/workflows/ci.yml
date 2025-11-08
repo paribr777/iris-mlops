@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout the code
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      # 2. Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.10
+
+      # 3. Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install dvc[s3]  # adjust remote type if needed
+          pip install pytest mlflow scikit-learn pandas joblib
+
+      # 4. Pull DVC datasets
+      - name: Pull DVC data
+        run: |
+          source venv/bin/activate
+          dvc pull
+
+      # 5. Reproduce DVC pipeline
+      - name: Run DVC pipeline
+        run: |
+          source venv/bin/activate
+          dvc repro
+
+      # 6. Evaluate models
+      - name: Evaluate model
+        run: |
+          source venv/bin/activate
+          python eval.py
+
+      # 7. Run pytest for inference script integrity
+      - name: Run tests
+        run: |
+          source venv/bin/activate
+          pytest tests/
