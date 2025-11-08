@@ -1,0 +1,27 @@
+stages:
+  train_v0:
+    cmd: python tuning.py --data data/iris_v0.csv --metrics metrics_v0.json
+    deps:
+      - tuning.py
+      - data/iris_v0.csv
+    outs:
+      - models/iris_best_v0.joblib
+      - metrics_v0.json
+
+  train_v1:
+    cmd: python tuning.py --data data/iris_v1.csv --metrics metrics_v1.json
+    deps:
+      - tuning.py
+      - data/iris_v1.csv
+    outs:
+      - models/iris_best_v1.joblib
+      - metrics_v1.json
+
+  train_v2:
+    cmd: python tuning.py --data data/iris_v2.csv --metrics metrics_v2.json
+    deps:
+      - tuning.py
+      - data/iris_v2.csv
+    outs:
+      - models/iris_best_v2.joblib
+      - metrics_v2.json
