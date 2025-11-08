@@ -65,9 +65,9 @@ def train_and_evaluate(data_path, params):
 
 # ------------------ Main Script ------------------ #
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--data", type=str, default="data/iris.csv", help="Path to dataset")
-    args = parser.parse_args()
+    # Use the args already parsed at the top
+    DATA_PATH = args.data
+    METRICS_PATH = args.metrics
 
     mlflow.set_tracking_uri("http://localhost:5000")
     mlflow.set_experiment("Iris_Classifier_Model")
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     for params in ParameterGrid(param_grid):
         with mlflow.start_run(run_name=f"iris_{version}") as run:
             mlflow.set_tag("dataset_version", version)
-            clf, acc = train_and_evaluate(args.data, params)
+            clf, acc = train_and_evaluate(DATA_PATH, params)
 
             mlflow.log_params(params)
             mlflow.log_metric("accuracy", acc)
@@ -101,22 +101,7 @@ if __name__ == "__main__":
                 best_params = params
                 best_run_id = run.info.run_id
 
-    # Register the best model
-    if best_run_id:
-        client = mlflow.tracking.MlflowClient()
-        model_uri = f"runs:/{best_run_id}/model"
-        model_name = "Iris_Classifier"
-
-        try:
-            client.create_registered_model(model_name)
-            print(f"Created new registered model: {model_name}")
-        except mlflow.exceptions.RestException:
-            print(f"Model '{model_name}' already exists, skipping creation.")
-
-        mv = client.create_model_version(model_name, model_uri, f"Best model from {version}")
-        print(f"Registered '{model_name}' as version {mv.version} (run {best_run_id})")
-
-    # Save best model locally
+    # Register model, save locally, save metrics
     os.makedirs(MODELS_DIR, exist_ok=True)
     best_model_path = os.path.join(MODELS_DIR, f"iris_best_{version}.joblib")
     joblib.dump(best_model, best_model_path)
@@ -126,3 +111,4 @@ if __name__ == "__main__":
         json.dump(metrics, f, indent=2)
 
     print(f"[{version}] Best Accuracy: {best_acc:.4f} & Params: {best_params}")
+
