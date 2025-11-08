@@ -1,0 +1,6 @@
+pandas
+scikit-learn
+joblib
+mlflow
+dvc[gdrive]
+pytest
