@@ -1,6 +1,6 @@
 stages:
   train_v0:
-    cmd: python tuning.py --data data/iris_v0.csv --metrics metrics_v0.json
+    cmd: python tuning.py --data data/iris_v0.csv --metrics metrics_v0.json --version v0
     deps:
       - tuning.py
       - data/iris_v0.csv
@@ -9,7 +9,7 @@ stages:
       - metrics_v0.json
 
   train_v1:
-    cmd: python tuning.py --data data/iris_v1.csv --metrics metrics_v1.json
+    cmd: python tuning.py --data data/iris_v1.csv --metrics metrics_v1.json --version v1
     deps:
       - tuning.py
       - data/iris_v1.csv
@@ -18,7 +18,7 @@ stages:
       - metrics_v1.json
 
   train_v2:
-    cmd: python tuning.py --data data/iris_v2.csv --metrics metrics_v2.json
+    cmd: python tuning.py --data data/iris_v2.csv --metrics metrics_v2.json --version v2
     deps:
       - tuning.py
       - data/iris_v2.csv

@@ -1,7 +1,8 @@
 schema: '2.0'
 stages:
   train_v0:
-    cmd: python tuning.py --data data/iris_v0.csv --metrics metrics_v0.json
+    cmd: python tuning.py --data data/iris_v0.csv --metrics metrics_v0.json 
+      --version v0
     deps:
     - path: data/iris_v0.csv
       hash: md5
@@ -9,8 +10,8 @@ stages:
       size: 3861
     - path: tuning.py
       hash: md5
-      md5: dd1a69ac70393d0502a8d1429971d3e1
-      size: 3705
+      md5: e61915be187614967e49bdab354ebb59
+      size: 3612
     outs:
     - path: metrics_v0.json
       hash: md5
@@ -20,3 +21,45 @@ stages:
       hash: md5
       md5: 5884cdd466103e8788b7dcc70ae80af7
       size: 144081
+  train_v1:
+    cmd: python tuning.py --data data/iris_v1.csv --metrics metrics_v1.json 
+      --version v1
+    deps:
+    - path: data/iris_v1.csv
+      hash: md5
+      md5: 4954d4088152604322732f13c4e14691
+      size: 2606
+    - path: tuning.py
+      hash: md5
+      md5: e61915be187614967e49bdab354ebb59
+      size: 3612
+    outs:
+    - path: metrics_v1.json
+      hash: md5
+      md5: 57413f8be4db7ccbb84e6577341ed61e
+      size: 158
+    - path: models/iris_best_v1.joblib
+      hash: md5
+      md5: 82839469c366011f7e46151e979737fb
+      size: 77745
+  train_v2:
+    cmd: python tuning.py --data data/iris_v2.csv --metrics metrics_v2.json 
+      --version v2
+    deps:
+    - path: data/iris_v2.csv
+      hash: md5
+      md5: 95d8300fe0c84c4814f4dd187f7b1627
+      size: 1310
+    - path: tuning.py
+      hash: md5
+      md5: e61915be187614967e49bdab354ebb59
+      size: 3612
+    outs:
+    - path: metrics_v2.json
+      hash: md5
+      md5: 9241dc2359d6841b15159d2ca60c9e50
+      size: 143
+    - path: models/iris_best_v2.joblib
+      hash: md5
+      md5: 51f3eeba5fc232b2ad0dc5231a53a714
+      size: 50817
