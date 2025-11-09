@@ -1,0 +1,7 @@
+data/
+models/
+mlruns/
+mlartifacts/
+venv/
+gcp-key.json
+

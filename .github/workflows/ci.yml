@@ -12,7 +12,7 @@ jobs:
 
     env:
       # Use GitHub secret for GCS auth
-      GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp_key.json
+      GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp-key.json
 
     steps:
       # 1. Checkout code
@@ -23,7 +23,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.10
+          python-version: 3.11
 
       # 3. Install dependencies
       - name: Install dependencies
@@ -39,7 +39,7 @@ jobs:
         run: |
           echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" > gcp_key.json
           gcloud auth activate-service-account --key-file=gcp_key.json
-          gcloud config set project <YOUR_PROJECT_ID>
+          gcloud config set project striking-gadget-473408-b7
 
       # 5. Pull DVC datasets and outputs
       - name: Pull DVC data
