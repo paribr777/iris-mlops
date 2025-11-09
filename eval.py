@@ -26,3 +26,4 @@ if __name__ == "__main__":
     acc = accuracy_score(y, y_pred)
 
     print(f"Evaluated model from MLflow registry '{args.model_name}' & Accuracy: {acc:.4f}")
+
