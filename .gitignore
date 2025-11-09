@@ -4,3 +4,5 @@ mlruns/
 mlartifacts/
 venv/
 gcp_key.json
+metrics_*.json
+models/
