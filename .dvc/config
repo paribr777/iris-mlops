@@ -1,4 +1,6 @@
 [core]
-    remote = myremote
+    remote = gcsremote
 ['remote "myremote"']
     url = gs://mlops-2025/dvcstore
+['remote "gcsremote"']
+    url = gs://mlops-2025
