@@ -9,9 +9,6 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    env:
-      # Set the environment variable for GCP authentication
-      GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp_key.json
 
     defaults:
       run:
@@ -19,16 +16,24 @@ jobs:
 
     steps:
       # 1. Checkout repo
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v3
 
       # 2. Set up Python
-      - name: Set up Python 3.11
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: 3.11
 
-      # 3. Install dependencies
+      # 3. Authenticate to GCP
+      - name: Authenticate to GCP
+        run: |
+          echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" > gcp_key.json
+          export GOOGLE_APPLICATION_CREDENTIALS="$PWD/gcp_key.json"
+          gcloud auth activate-service-account --key-file=gcp_key.json
+          gcloud config set project striking-gadget-473408-b7
+
+      # 4. Set up virtual environment and install dependencies
       - name: Install dependencies
         run: |
           python -m venv venv
@@ -37,25 +42,18 @@ jobs:
           pip install -r requirements.txt
           pip install dvc[gs] gcsfs mlflow scikit-learn pandas joblib pytest
 
-      # 4. Authenticate to GCP
-      - name: Authenticate to GCP
-        run: |
-          echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" > gcp_key.json
-          gcloud auth activate-service-account --key-file=gcp_key.json
-          gcloud config set project striking-gadget-473408-b7
-
-      # 5. Pull DVC data and outputs
+      # 5. Pull DVC datasets and outputs
       - name: Pull DVC data
         run: |
           source venv/bin/activate
-          # Make sure DVC uses the GCS remote
-          dvc remote modify --local myremote gdrive_use_service_account true || true
-          dvc pull --remote myremote --force
+          export GOOGLE_APPLICATION_CREDENTIALS="$PWD/gcp_key.json"
+          dvc pull --force
 
-      # 6. Reproduce DVC pipeline
+      # 6. Reproduce DVC pipeline (incremental training)
       - name: Reproduce pipeline
         run: |
           source venv/bin/activate
+          export GOOGLE_APPLICATION_CREDENTIALS="$PWD/gcp_key.json"
           dvc repro
 
       # 7. Evaluate latest model
@@ -64,8 +62,8 @@ jobs:
           source venv/bin/activate
           python eval.py
 
-      # 8. Run tests
-      - name: Run pytest
+      # 8. Run pytest for inference script integrity
+      - name: Run tests
         run: |
           source venv/bin/activate
           pytest tests/
