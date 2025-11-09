@@ -9,13 +9,17 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-
     env:
-      # Use GitHub secret for GCS auth
-      GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp-key.json
+      # This tells Google Cloud SDK where to find the credentials file
+      GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp_key.json
+
+    # Use bash with venv activated for all steps
+    defaults:
+      run:
+        shell: bash -l {0}
 
     steps:
-      # 1. Checkout code
+      # 1. Checkout repo
       - name: Checkout repo
         uses: actions/checkout@v3
 
@@ -25,7 +29,7 @@ jobs:
         with:
           python-version: 3.11
 
-      # 3. Install dependencies
+      # 3. Install dependencies and activate venv
       - name: Install dependencies
         run: |
           python -m venv venv
@@ -34,7 +38,7 @@ jobs:
           pip install -r requirements.txt
           pip install gcsfs dvc[gs] mlflow scikit-learn pandas joblib pytest
 
-      # 4. Authenticate to GCS
+      # 4. Authenticate to GCP using GitHub secret
       - name: Authenticate to GCP
         run: |
           echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" > gcp_key.json
