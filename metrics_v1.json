@@ -1,9 +1,0 @@
-{
-  "version": "v0",
-  "best_accuracy": 0.9523809523809523,
-  "best_params": {
-    "max_depth": null,
-    "min_samples_split": 2,
-    "n_estimators": 50
-  }
-}
