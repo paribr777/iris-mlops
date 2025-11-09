@@ -10,7 +10,7 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     env:
-      # Path for GCP credentials
+      # Set the environment variable for GCP authentication
       GOOGLE_APPLICATION_CREDENTIALS: ${{ github.workspace }}/gcp_key.json
 
     defaults:
@@ -18,43 +18,45 @@ jobs:
         shell: bash -l {0}
 
     steps:
-      # 1. Checkout repository
-      - name: Checkout code
+      # 1. Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       # 2. Set up Python
-      - name: Set up Python
+      - name: Set up Python 3.11
         uses: actions/setup-python@v4
         with:
           python-version: 3.11
 
-      # 3. Install dependencies and activate virtual environment
+      # 3. Install dependencies
       - name: Install dependencies
         run: |
           python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
-          pip install "dvc[gs]" gcsfs mlflow scikit-learn pandas joblib pytest
+          pip install dvc[gs] gcsfs mlflow scikit-learn pandas joblib pytest
 
-      # 4. Authenticate with GCP using service account
+      # 4. Authenticate to GCP
       - name: Authenticate to GCP
         run: |
           echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" > gcp_key.json
           gcloud auth activate-service-account --key-file=gcp_key.json
           gcloud config set project striking-gadget-473408-b7
 
-      # 5. Pull DVC data and models
-      - name: DVC Pull
+      # 5. Pull DVC data and outputs
+      - name: Pull DVC data
         run: |
           source venv/bin/activate
-          dvc pull -v
+          # Make sure DVC uses the GCS remote
+          dvc remote modify --local myremote gdrive_use_service_account true || true
+          dvc pull --remote myremote --force
 
-      # 6. Reproduce DVC pipeline (all stages)
-      - name: Reproduce DVC pipeline
+      # 6. Reproduce DVC pipeline
+      - name: Reproduce pipeline
         run: |
           source venv/bin/activate
-          dvc repro -v
+          dvc repro
 
       # 7. Evaluate latest model
       - name: Evaluate model
@@ -62,8 +64,8 @@ jobs:
           source venv/bin/activate
           python eval.py
 
-      # 8. Run tests to ensure inference script integrity
-      - name: Run tests
+      # 8. Run tests
+      - name: Run pytest
         run: |
           source venv/bin/activate
-          pytest tests/ --maxfail=1 --disable-warnings -q
+          pytest tests/
